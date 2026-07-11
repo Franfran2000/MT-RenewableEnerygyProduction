@@ -97,7 +97,7 @@ print(weather)
 
 
 #%%
-def getACPower():
+def calculateACPower(weather):
     system = {'module': module, 'inverter': inverter,
     
               'surface_azimuth': 180}
@@ -197,7 +197,7 @@ def getACPower():
 
 
 def run_example():
-    ac = getACPower()
+    ac = calculateACPower(weather)
     print(ac)
     # plt.plot(np.arange(len(ac)), ac)
     ac.plot()

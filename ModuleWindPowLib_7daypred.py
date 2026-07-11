@@ -93,7 +93,7 @@ def get_weather_data(filename="weather.csv", **kwargs):
 
     return weather_df
 
-def get_weather_data_Open_Meteo(lat=50.6683, long=4.6144, timez="Europe/Berlin"):
+def getOpenMeteoWeather(lat=50.6683, long=4.6144, timez="Europe/Berlin"):
     import openmeteo_requests
     
     import pandas as pd
@@ -400,7 +400,7 @@ def run_example():
     logging.getLogger().setLevel(logging.INFO)
 
     # weather = get_weather_data("weather.csv")
-    weather = get_weather_data_Open_Meteo()
+    weather = getOpenMeteoWeather()
     # pd.set_option('display.max_columns', None)
     # print(weather.head(10))
     
