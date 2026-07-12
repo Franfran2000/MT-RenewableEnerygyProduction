@@ -135,7 +135,7 @@ def get_pv_weather(location):
     #TODO Add check for parameters
     latitude = location["latitude"]
     longitude = location["longitude"]
-    timezone = location["timezone"]
+    timezone = location["tz"]
     
     #%%
     # Setup the Open-Meteo API client with cache and retry on error
@@ -178,23 +178,17 @@ def get_pv_weather(location):
     	inclusive = "left"
     )}
     
-    hourly_data["temperature_2m"] = hourly_temperature_2m
-    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
+    hourly_data["temp_air"] = hourly_temperature_2m
+    hourly_data["wind_speed"] = hourly_wind_speed_10m
     hourly_data["surface_pressure"] = hourly_surface_pressure*100 #from hPa to Pa
-    hourly_data["diffuse_radiation"] = hourly_diffuse_radiation
-    hourly_data["direct_normal_irradiance"] = hourly_direct_normal_irradiance
-    hourly_data["shortwave_radiation"] = hourly_shortwave_radiation
+    hourly_data["dhi"] = hourly_diffuse_radiation
+    hourly_data["dni"] = hourly_direct_normal_irradiance
+    hourly_data["ghi"] = hourly_shortwave_radiation
     
     hourly_data = pd.DataFrame(data = hourly_data)
     print("\nHourly data\n", hourly_data)
     
     #%% 
     weather = hourly_data.set_index("date")
-    print(weather.index)
-    print(weather["temperature_2m"])
-    print(weather["wind_speed_10m"])
-    print(weather["surface_pressure"])
-    print(weather["diffuse_radiation"])
-    print(weather["direct_normal_irradiance"])
-    print(weather["shortwave_radiation"])
+
     return weather
