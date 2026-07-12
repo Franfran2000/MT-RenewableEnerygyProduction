@@ -8,19 +8,18 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
+#TODO add number of days and time resolution as params
 def get_wind_weather(location):
     """
     get Open Meteo forecast for wind module, by default it is set to Louvain-la-Neuve in Belgium
 
     Parameters
     ----------
-    lat :
-        latitude of the wind installation
-    long : TYPE, optional
-        longitude of the wind installation
-    timez : TYPE, optional
-        timezone in which the wind installation is located
-
+    location: dict
+        latitude: float
+        longitude: float
+        timezone: string
+    
     Returns
     -------
     weather
@@ -117,9 +116,11 @@ def get_pv_weather(location):
 
     Parameters
     ----------
-    location
-        dictionary containing latitude, longitude and timezone of pv installation
-
+    location: dict
+        latitude: float
+        longitude: float
+        timezone: string
+    
     Returns
     -------
     weather
