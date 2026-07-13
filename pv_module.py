@@ -30,6 +30,8 @@ class PVModule(RenewModule):
 
     def read_params(self, arrays, inverter_name):
         """
+        #TODO Change descrption
+        #TODO separate into multiple subfunctions
         Reads the input defining a PV system of arrays of pv modules connected to a single inverter
         The description of these variables is taken from the pvlib documentation
 
@@ -111,9 +113,10 @@ class PVModule(RenewModule):
             name of the inverter to look up in the SAPM database
         
         """
+        #TODO allow list of inverter names, and have arrays be a list of list of dicts
         sandia_modules = pvlib.pvsystem.retrieve_sam('SandiaMod')
         sapm_inverters = pvlib.pvsystem.retrieve_sam('cecinverter')
-        
+                
         inverter = sapm_inverters[inverter_name]
                 
         for config in arrays:
@@ -124,15 +127,13 @@ class PVModule(RenewModule):
             temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS[temp_mod_name][temp_mod_config]    
             
             mount = None
-            if config["mount"] == "fixed":
-                mount = FixedMount(surface_tilt=config["surface_tilt"], surface_azimuth=config["surface_azimuth"])
+            if config["mount"]["type"] == "fixed":
+                params = config["mount"]["params"]
+                mount = FixedMount(**params)
 
-            elif config["mount"] == "tracker":
-                mount = SingleAxisTrackerMount(axis_tilt=config.get("axis_tilt", 0), 
-                                               axis_azimuth=config.get("axis_azimuth", 180),
-                                               max_angle=config.get("max_angle", 90),
-                                               backtrack=config.get("backtrack", True),
-                                               gcr=config.get("gcr", 0.35))
+            elif config["mount"]["type"] == "tracker":
+                params = config["mount"]["params"]
+                mount = SingleAxisTrackerMount(**params)
             else:
                 raise ValueError(f"Unknown mount type: {config['mount']}")
             

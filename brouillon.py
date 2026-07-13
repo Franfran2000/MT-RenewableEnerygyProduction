@@ -10,3 +10,11 @@ sandia_modules = pvsyst.retrieve_sam('SandiaMod')
 print(sandia_modules.columns)
 
 modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
+
+
+
+import pvlib.pvsystem as psys
+
+inverter_data = psys.retrieve_sam("CECInverter")
+
+print(inverter_data[:20])

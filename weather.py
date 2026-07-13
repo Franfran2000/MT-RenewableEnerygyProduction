@@ -52,10 +52,10 @@ def get_wind_weather(location):
     responses = openmeteo.weather_api(url, params=params)
     # Process first location. Add a for-loop for multiple locations or weather models
     response = responses[0]
-    print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation: {response.Elevation()} m asl")
-    print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+    # print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
+    # print(f"Elevation: {response.Elevation()} m asl")
+    # print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
+    # print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
     abs_zero = 273.15 # Offset between degrees Celsius and Kelvin 
     
     # Process hourly data. The order of variables needs to be the same as requested.
@@ -102,11 +102,11 @@ def get_wind_weather(location):
     for i, j in col_tuples:
         weather[i, j] = hourly_data[i][j]
     
-    weather["roughness_length"] = None # None because it will be using hellman wind speed model
-                                                # looking at source code for how it works, if we want to use default value of 1/7,
-                                                # best way is to set hellman_exponent to 1/7, instead of trying to have roughness_length=None
-                                                # which corresponds to around 0.10 for z0
-    
+    weather["roughness_length"] = 0.10  # None because it will be using hellman wind speed model
+                                        # looking at source code for how it works, if we want to use default value of 1/7,
+                                        # best way is to set hellman_exponent to 1/7, instead of trying to have roughness_length=None
+                                        # which corresponds to around 0.10 for z0
+    #TODO Change the way we manage roughness length
     return weather
 
 def get_pv_weather(location):
@@ -158,10 +158,10 @@ def get_pv_weather(location):
     
     # Process first location. Add a for-loop for multiple locations or weather models
     response = responses[0]
-    print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation: {response.Elevation()} m asl")
-    print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+    # print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
+    # print(f"Elevation: {response.Elevation()} m asl")
+    # print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
+    # print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
     
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
@@ -187,7 +187,7 @@ def get_pv_weather(location):
     hourly_data["ghi"] = hourly_shortwave_radiation
     
     hourly_data = pd.DataFrame(data = hourly_data)
-    print("\nHourly data\n", hourly_data)
+    # print("\nHourly data\n", hourly_data)
     
     #%% 
     weather = hourly_data.set_index("date")
