@@ -10,9 +10,22 @@ import weather as wt
 from pv_module import PVModule
 from wind_module import WindModule
 
-def main():
+def renewable_powers(configurations):
+    """
+    Computes the power forecast for each renewable module, based on the configurations
+
+    Parameters
+    ----------
+    configurations : list of dicts
+        configuration info for each module
+
+    Returns
+    -------
+    total_power : dict
+        dictionary containing power forecast time series for each module
+    """
+
     #TODO read the inputs from json files
-    #TODO create file similar to weather that manages IO for each module
     
     # Location information
     location = { 
@@ -138,22 +151,27 @@ def main():
     wind.read_params(turbines)
     wind.calculate_power(wind_weather)
     wind_power = wind.get_power()
-    # print(wind_power)
-    pv_power.plot()
-    plt.xlabel("Date")
-    plt.ylabel('Hourly PV power output (W)')
-    plt.show()
     
-    wind_power.plot()
-    plt.xlabel("Date")
-    plt.ylabel('Hourly Wind power output (W)')
-    plt.show()
+    total_power = {"pv": pv_power, "wind": wind_power}
+    
+    return total_power
+    
+    # # print(wind_power)
+    # pv_power.plot()
+    # plt.xlabel("Date")
+    # plt.ylabel('Hourly PV power output (W)')
+    # plt.show()
+    
+    # wind_power.plot()
+    # plt.xlabel("Date")
+    # plt.ylabel('Hourly Wind power output (W)')
+    # plt.show()
         
-    total_power = pv_power + wind_power/1e4
-    total_power.plot()
-    plt.xlabel("Date")
-    plt.ylabel('Hourly total power output (W)')
-    plt.show()
+    # total_power = pv_power + wind_power/1e4
+    # total_power.plot()
+    # plt.xlabel("Date")
+    # plt.ylabel('Hourly total power output (W)')
+    # plt.show()
     
 if __name__ == "__main__":
-    main()
+    renewable_powers()
