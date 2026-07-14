@@ -387,7 +387,6 @@ def plot_or_print(my_turbine, e126, my_turbine2):
         if e126.power_curve is not False:
             print(e126.power_curve)
 
-
 def run_example():
     r"""
     Runs the basic example.
