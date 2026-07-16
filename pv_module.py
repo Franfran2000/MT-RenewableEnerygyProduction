@@ -24,13 +24,11 @@ class PVModule(RenewModule):
         """
         super().__init__() 
         self.location = Location(**location)
-        self.arrays = [] # list of array(s) in the system
-        self.pvsystem = None # the array(s) connected to a single inverter
-        self.mc = None # ModelChain that will compute the power forecast with weather data
-
-    def read_params(self, arrays, inverter_name):
+        self.installations_mc = [] # list of modelchains
+        
+    def read_params(self, systems):
         """
-        #TODO Change descrption
+        #TODO Change description
         #TODO separate into multiple subfunctions
         Reads the input defining a PV system of arrays of pv modules connected to a single inverter
         The description of these variables is taken from the pvlib documentation
@@ -114,41 +112,52 @@ class PVModule(RenewModule):
         
         """
         #TODO allow list of inverter names, and have arrays be a list of list of dicts
+        #One PVSyst and one ModelChain per inverter, so if multiple inverters then we need to add up all the multiple powers
+        
         sandia_modules = pvlib.pvsystem.retrieve_sam('SandiaMod')
         sapm_inverters = pvlib.pvsystem.retrieve_sam('cecinverter')
+        
+        for system in systems:
+            
+            inverter = sapm_inverters[system["inverter_name"]]
+            arrays = []
+            for config in system["arrays"]:
                 
-        inverter = sapm_inverters[inverter_name]
+                module = sandia_modules[config["module"]]
                 
-        for config in arrays:
+                temp_mod_name, temp_mod_config = config["temperature_model"]
+                temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS[temp_mod_name][temp_mod_config]    
+                
+                mount = None
+                if config["mount"]["type"] == "fixed":
+                    params = config["mount"]["params"]
+                    mount = FixedMount(**params)
+    
+                elif config["mount"]["type"] == "tracker":
+                    params = config["mount"]["params"]
+                    mount = SingleAxisTrackerMount(**params)
+                else:
+                    raise ValueError(f"Unknown mount type: {config['mount']}")
+                
+                array = Array(mount=mount,
+                              module_parameters=module,
+                              temperature_model_parameters=temperature_model_parameters,
+                              modules_per_string=config.get("modules_per_string", 1),
+                              strings=config.get("strings", 1))
+    
+                arrays.append(array)
+    
+            pvsystem = PVSystem(arrays=self.arrays, inverter_parameters=inverter)
+            mc = ModelChain(pvsystem, self.location)
             
-            module = sandia_modules[config["module"]]
-            
-            temp_mod_name, temp_mod_config = config["temperature_model"]
-            temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS[temp_mod_name][temp_mod_config]    
-            
-            mount = None
-            if config["mount"]["type"] == "fixed":
-                params = config["mount"]["params"]
-                mount = FixedMount(**params)
-
-            elif config["mount"]["type"] == "tracker":
-                params = config["mount"]["params"]
-                mount = SingleAxisTrackerMount(**params)
-            else:
-                raise ValueError(f"Unknown mount type: {config['mount']}")
-            
-            array = Array(mount=mount,
-                          module_parameters=module,
-                          temperature_model_parameters=temperature_model_parameters,
-                          modules_per_string=config.get("modules_per_string", 1),
-                          strings=config.get("strings", 1))
-
-            self.arrays.append(array)
-
-        self.pvsystem = PVSystem(arrays=self.arrays, inverter_parameters=inverter)
-        self.mc = ModelChain(self.pvsystem, self.location)
+            self.installations_mc.append(mc)
         
     def calculate_power(self, weather):
-        self.mc.run_model(weather)
-        self.power = self.mc.results.ac
+        install_powers = []
+        for install_mc in self.installations_mc:
+            install_mc.run_model(weather)
+            install_power = install_mc.results.ac
+            install_powers.append(install_power)
+            
+        self.power = pd.concat(install_powers, axis=1).sum(axis=1) #aggregated sum of all pv installations at a single location
         

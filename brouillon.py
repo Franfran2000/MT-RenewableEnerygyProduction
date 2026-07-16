@@ -4,17 +4,30 @@ Created on Sun Jul 12 11:02:54 2026
 
 @author: Francis Jacobs
 """
-import pvlib.pvsystem as pvsyst
+# import pvlib.pvsystem as pvsyst
 
-sandia_modules = pvsyst.retrieve_sam('SandiaMod')
-print(sandia_modules.columns)
+# sandia_modules = pvsyst.retrieve_sam('SandiaMod')
+# print(sandia_modules.columns)
 
-modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
+# modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
 
+# import pvlib.pvsystem as psys
 
+# inverter_data = psys.retrieve_sam("CECInverter")
 
-import pvlib.pvsystem as psys
+# print(inverter_data[:20])
 
-inverter_data = psys.retrieve_sam("CECInverter")
+import pandas as pd
 
-print(inverter_data[:20])
+# Create sample Series
+data1 = [1, 2, 3, 4]
+data2 = [5, 6, 7, 8]
+data3 = [9, 10, 11, 12]
+
+series1 = pd.Series(data1)
+series2 = pd.Series(data2)
+series3 = pd.Series(data3)
+
+# Sum of N Series with pd.concat
+result = pd.concat([series1, series2, series3], axis=1).sum(axis=1)
+print(result)
