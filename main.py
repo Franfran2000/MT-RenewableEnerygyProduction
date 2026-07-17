@@ -3,6 +3,7 @@ Main module
 Input paths to config json, and consumption data
 """
 
+from matplotlib import pyplot as plt
 from combined_power_module import renewable_powers
 import json
 
@@ -25,7 +26,7 @@ def main(configuration_files, consumption=None):
     #define configuration example json, make it easy to understand
     configs = []
     for configfile in configuration_files:
-        configuration = parse_configfile(configuration_files)
+        configuration = parse_configfile(configfile)
         configs.append(configuration)
     
     #call power compute module
@@ -33,7 +34,14 @@ def main(configuration_files, consumption=None):
     for cfg in configs:
         powers.append(renewable_powers(cfg)) #each element is a list of modules with their calculated power
     #plot and compare each power forecast
-
+        
+    for power_mod in powers[0]["pv_modules"]:
+        power = power_mod.get_power()
+        power.plot()
+        plt.xlabel("Date")
+        plt.ylabel('Hourly PV power output (W)')
+        plt.show()
+    
     # compute auto-consumption
     # might need to modify both datasets to fit them
     
@@ -42,6 +50,8 @@ def main(configuration_files, consumption=None):
     
 
 def parse_configfile(configfile):
-    with open(configfile), "r" as cfg:
+    with open(configfile, "r") as cfg:
         config = json.load(cfg)
     return config
+
+main(["sample.json"])

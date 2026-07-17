@@ -11,23 +11,35 @@ Created on Sun Jul 12 11:02:54 2026
 
 # modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
 
-# import pvlib.pvsystem as psys
-
-# inverter_data = psys.retrieve_sam("CECInverter")
-
-# print(inverter_data[:20])
-
+import pvlib.pvsystem as psys
 import pandas as pd
+inverter_data = psys.retrieve_sam("CECInverter")
 
-# Create sample Series
-data1 = [1, 2, 3, 4]
-data2 = [5, 6, 7, 8]
-data3 = [9, 10, 11, 12]
+with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       'display.precision', 3,
+                       ):
+    print(inverter_data.head(10))   
 
-series1 = pd.Series(data1)
-series2 = pd.Series(data2)
-series3 = pd.Series(data3)
 
-# Sum of N Series with pd.concat
-result = pd.concat([series1, series2, series3], axis=1).sum(axis=1)
-print(result)
+sandia_modules = psys.retrieve_sam('SandiaMod')
+with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       'display.precision', 3,
+                       ):
+    print(sandia_modules.head(10))
+
+# import pandas as pd
+
+# # Create sample Series
+# data1 = [1, 2, 3, 4]
+# data2 = [5, 6, 7, 8]
+# data3 = [9, 10, 11, 12]
+
+# series1 = pd.Series(data1)
+# series2 = pd.Series(data2)
+# series3 = pd.Series(data3)
+
+# # Sum of N Series with pd.concat
+# result = pd.concat([series1, series2, series3], axis=1).sum(axis=1)
+# print(result)
