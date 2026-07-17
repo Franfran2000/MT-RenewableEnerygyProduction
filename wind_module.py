@@ -50,7 +50,7 @@ class WindModule(RenewModule):
         })
         
         wind_farm = WindFarm(
-            name="example_farm", wind_turbine_fleet=wind_turbine_fleet, efficiency=turbines["efficiency"]
+            name=turbines["farm_name"], wind_turbine_fleet=wind_turbine_fleet, efficiency=turbines["efficiency"]
         )
         self.mc = TurbineClusterModelChain(wind_farm, **turbines["modelchain_params"])
         
