@@ -42,13 +42,15 @@ def main(configuration_files_paths, consumption=None):
 
     # plots
     for config_power in powers:
-        for config_modules in config_power.values():
+        for config_type, config_modules in config_power.items():
             power = config_modules[0].get_power()
             for power_mod in config_modules[1:]:
                 power += power_mod.get_power()
+
+            config_type = config_type[:-len("_modules")]
             power.plot()
             plt.xlabel("Date")
-            plt.ylabel('Hourly PV power output (W)')
+            plt.ylabel(f"{config_type} power output (W)")
             plt.show()
 
 

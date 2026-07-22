@@ -56,7 +56,7 @@ def renewable_powers(configs):
             wind_installations = cfg["installations"]
             for wind_install in wind_installations: 
                 wind_location = wind_install["location"]
-                wind_weather = wt.get_wind_weather(wind_location)
+                wind_weather = wt.get_wind_weather(wind_location, weather_params)
                 
                 wind = WindModule()
                 wind.read_params(wind_install["turbines"])

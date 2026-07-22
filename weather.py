@@ -110,9 +110,9 @@ def get_pv_weather(location, weather_params):
     
     response_data_temperature_2m = response_data.Variables(0).ValuesAsNumpy()
     response_data_wind_speed_10m = response_data.Variables(1).ValuesAsNumpy()
-    response_data_diffuse_radiation = response_data.Variables(3).ValuesAsNumpy()
-    response_data_direct_normal_irradiance = response_data.Variables(4).ValuesAsNumpy()
-    response_data_shortwave_radiation = response_data.Variables(5).ValuesAsNumpy()
+    response_data_diffuse_radiation = response_data.Variables(2).ValuesAsNumpy()
+    response_data_direct_normal_irradiance = response_data.Variables(3).ValuesAsNumpy()
+    response_data_shortwave_radiation = response_data.Variables(4).ValuesAsNumpy()
     
     response_dict = {"date": pd.date_range(
     	start = pd.to_datetime(response_data.Time(), unit = "s", utc = True),
@@ -160,7 +160,7 @@ def get_weather(location, weather_params, weather_variables):
     forecast_reso = weather_params["forecast_reso"]
     
     historical = False
-    if not start_date and not end_date:
+    if start_date and end_date:
         historical = True
     
     #%%
@@ -191,7 +191,6 @@ def get_weather(location, weather_params, weather_variables):
         url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
         params["start_date"] = start_date
         params["end_date"] = end_date
-    
     
     responses = openmeteo.weather_api(url, params=params)
     

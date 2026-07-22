@@ -11,16 +11,16 @@ Created on Sun Jul 12 11:02:54 2026
 
 # modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
 
-# import pvlib.pvsystem as psys
-# import pandas as pd
-# inverter_data = psys.retrieve_sam("CECInverter")
+import pvlib.pvsystem as psys
+import pandas as pd
+inverter_data = psys.retrieve_sam("CECInverter")
 
-# with pd.option_context('display.max_rows', None,
-#                        'display.max_columns', None,
-#                        'display.precision', 3,
-#                        ):
-#     print(inverter_data.head(10))   
-
+with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       'display.precision', 3,
+                       ):
+    print(inverter_data.head(100))   
+    print(inverter_data["iPower__SHO_5_2__240V_"])
 
 # sandia_modules = psys.retrieve_sam('SandiaMod')
 # with pd.option_context('display.max_rows', None,
@@ -56,3 +56,6 @@ Created on Sun Jul 12 11:02:54 2026
 
 # dic = {forecast_reso1: forecast_reso2}
 # print(dic)
+
+
+

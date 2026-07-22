@@ -87,7 +87,12 @@ config2 = {
     "installations": installs
     }
 
-configs_pv = [config1, config2]
+configs_pv = {
+    # "weather": {"start_date": "2022-01-01", "end_date": "2022-01-07", "forecast_reso": "minutely_15"},
+    "weather": {"start_date": None, "end_date": None, "forecast_reso": "hourly"},
+    "configs": [config1, config2]
+} 
+
 
 """
 Wind JSON example
@@ -150,8 +155,8 @@ config2 = {
     }
 
 configs_wind = {
-    "weather": {"start_date": "2022-01-01", "end_date": "2022-02-01", "forecast_reso": "minutely_15"}
-    [config1, config2]
+    "weather": {"start_date": None, "end_date": None, "forecast_reso": "hourly"},
+    "configs": [config1, config2]
 }
 
 import json 
