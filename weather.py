@@ -9,7 +9,7 @@ import requests_cache
 from retry_requests import retry
 
 #TODO add number of days and time resolution as params
-def get_wind_weather(location):
+def get_wind_weather(location, weather_params):
     """
     get Open Meteo forecast for wind module, by default it is set to Louvain-la-Neuve in Belgium
 
@@ -28,79 +28,51 @@ def get_wind_weather(location):
         temperature at heights 2, 80, 120, and 180m: degree {K}
         surface air pressure: {Pa}
     """
+   
+    wind_weather_variables = ["wind_speed_80m", "wind_speed_10m", "wind_speed_120m", "temperature_80m", "temperature_120m", "temperature_2m", "wind_speed_180m", "temperature_180m", "surface_pressure"]
+    response_data = get_weather(location, weather_params, wind_weather_variables)
     
-    #TODO Add check for parameters
-    latitude = location["latitude"]
-    longitude = location["longitude"]
-    timezone = location["timezone"]
-    
-    # Setup the Open-Meteo API client with cache and retry on error
-    cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-    retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-    openmeteo = openmeteo_requests.Client(session = retry_session)
-    
-    # Make sure all required weather variables are listed here
-    # The order of variables in hourly or daily is important to assign them correctly below
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-    	"latitude": latitude,
-    	"longitude": longitude,
-    	"hourly": ["wind_speed_80m", "wind_speed_10m", "wind_speed_120m", "temperature_80m", "temperature_120m", "temperature_2m", "wind_speed_180m", "temperature_180m", "surface_pressure"],
-    	"timezone": timezone,
-    	"wind_speed_unit": "ms",
-    }
-    responses = openmeteo.weather_api(url, params=params)
-    # Process first location. Add a for-loop for multiple locations or weather models
-    response = responses[0]
-    # print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    # print(f"Elevation: {response.Elevation()} m asl")
-    # print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
-    # print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
     abs_zero = 273.15 # Offset between degrees Celsius and Kelvin 
-    
-    # Process hourly data. The order of variables needs to be the same as requested.
-    hourly = response.Hourly()
-    hourly_wind_speed_80m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(1).ValuesAsNumpy()
-    hourly_wind_speed_120m = hourly.Variables(2).ValuesAsNumpy()
-    hourly_temperature_80m = hourly.Variables(3).ValuesAsNumpy() + abs_zero
-    hourly_temperature_120m = hourly.Variables(4).ValuesAsNumpy() + abs_zero
-    hourly_temperature_2m = hourly.Variables(5).ValuesAsNumpy() + abs_zero
-    hourly_wind_speed_180m = hourly.Variables(6).ValuesAsNumpy()
-    hourly_temperature_180m = hourly.Variables(7).ValuesAsNumpy() + abs_zero
-    hourly_surface_pressure = hourly.Variables(8).ValuesAsNumpy()
-    
+    data_wind_speed_80m = response_data.Variables(0).ValuesAsNumpy()
+    data_wind_speed_10m = response_data.Variables(1).ValuesAsNumpy()
+    data_wind_speed_120m = response_data.Variables(2).ValuesAsNumpy()
+    data_temperature_80m = response_data.Variables(3).ValuesAsNumpy() + abs_zero
+    data_temperature_120m = response_data.Variables(4).ValuesAsNumpy() + abs_zero
+    data_temperature_2m = response_data.Variables(5).ValuesAsNumpy() + abs_zero
+    data_wind_speed_180m = response_data.Variables(6).ValuesAsNumpy()
+    data_temperature_180m = response_data.Variables(7).ValuesAsNumpy() + abs_zero
+    data_surface_pressure = response_data.Variables(8).ValuesAsNumpy()
     
     date_index = pd.date_range(
-    	start = pd.to_datetime(hourly.Time() + response.UtcOffsetSeconds(), unit = "s", utc = True),
-    	end =  pd.to_datetime(hourly.TimeEnd() + response.UtcOffsetSeconds(), unit = "s", utc = True),
-    	freq = pd.Timedelta(seconds = hourly.Interval()),
-    	inclusive = "left"
-    )
-    hourly_data = { 
+		start = pd.to_datetime(response_data.Time(), unit = "s", utc = True),
+		end =  pd.to_datetime(response_data.TimeEnd(), unit = "s", utc = True),
+		freq = pd.Timedelta(seconds = response_data.Interval()),
+		inclusive = "left"
+	)
+    response_dict = { 
         "wind_speed": {}, 
         "temperature": {}, 
         "pressure": {}
         , "roughness_length": {"0": None}
         }
     
-    hourly_data["wind_speed"]["80"]= hourly_wind_speed_80m
-    hourly_data["wind_speed"]["10"] = hourly_wind_speed_10m
-    hourly_data["wind_speed"]["120"] = hourly_wind_speed_120m
-    hourly_data["temperature"]["80"] = hourly_temperature_80m
-    hourly_data["temperature"]["120"] = hourly_temperature_120m
-    hourly_data["temperature"]["2"] = hourly_temperature_2m
-    hourly_data["wind_speed"]["180"] = hourly_wind_speed_180m
-    hourly_data["temperature"]["180"] = hourly_temperature_180m
-    hourly_data["pressure"]["0"] = hourly_surface_pressure*100 #from hPa to Pa
+    response_dict["wind_speed"]["80"]= data_wind_speed_80m
+    response_dict["wind_speed"]["10"] = data_wind_speed_10m
+    response_dict["wind_speed"]["120"] = data_wind_speed_120m
+    response_dict["temperature"]["80"] = data_temperature_80m
+    response_dict["temperature"]["120"] = data_temperature_120m
+    response_dict["temperature"]["2"] = data_temperature_2m
+    response_dict["wind_speed"]["180"] = data_wind_speed_180m
+    response_dict["temperature"]["180"] = data_temperature_180m
+    response_dict["pressure"]["0"] = data_surface_pressure*100 #from hPa to Pa
         
-    col_tuples = [(i,j) for i in hourly_data.keys() for j in hourly_data[i].keys()]
+    col_tuples = [(i,j) for i in response_dict.keys() for j in response_dict[i].keys()]
     col_index = pd.MultiIndex.from_tuples(col_tuples)
     
     weather = pd.DataFrame(index=date_index, columns=col_index)
         
     for i, j in col_tuples:
-        weather[i, j] = hourly_data[i][j]
+        weather[i, j] = response_dict[i][j]
     
     weather["roughness_length"] = 0.10  # None because it will be using hellman wind speed model
                                         # looking at source code for how it works, if we want to use default value of 1/7,
@@ -109,7 +81,7 @@ def get_wind_weather(location):
     #TODO Change the way we manage roughness length
     return weather
 
-def get_pv_weather(location):
+def get_pv_weather(location, weather_params):
     
     """
     get Open Meteo forecast for photovoltaic module
@@ -127,16 +99,69 @@ def get_pv_weather(location):
         pandas dataframe containing the weather info in the correct format for the pv module:
             air temperature at height 2m: degree {C}
             wind speed at height 10m: {m/s}
-            surface air pressure: {Pa}
             diffuse solar radiation DHI: {W/m^2}
             direct normal irradiance DNI: {W/m^2}
             shortwave solar radiation GHI: {W/m^2}
+    """
+    
+    
+    solar_weather_variables = ["temperature_2m", "wind_speed_10m", "diffuse_radiation", "direct_normal_irradiance", "shortwave_radiation"]
+    response_data = get_weather(location, weather_params, solar_weather_variables)
+    
+    response_data_temperature_2m = response_data.Variables(0).ValuesAsNumpy()
+    response_data_wind_speed_10m = response_data.Variables(1).ValuesAsNumpy()
+    response_data_diffuse_radiation = response_data.Variables(3).ValuesAsNumpy()
+    response_data_direct_normal_irradiance = response_data.Variables(4).ValuesAsNumpy()
+    response_data_shortwave_radiation = response_data.Variables(5).ValuesAsNumpy()
+    
+    response_dict = {"date": pd.date_range(
+    	start = pd.to_datetime(response_data.Time(), unit = "s", utc = True),
+    	end =  pd.to_datetime(response_data.TimeEnd(), unit = "s", utc = True),
+    	freq = pd.Timedelta(seconds = response_data.Interval()),
+    	inclusive = "left"
+    )}
+    
+    response_dict["temp_air"] = response_data_temperature_2m
+    response_dict["wind_speed"] = response_data_wind_speed_10m
+    response_dict["dhi"] = response_data_diffuse_radiation
+    response_dict["dni"] = response_data_direct_normal_irradiance
+    response_dict["ghi"] = response_data_shortwave_radiation
+    
+    response_dataframe = pd.DataFrame(data = response_dict)
+    
+    #%% 
+    weather = response_dataframe.set_index("date")
+
+    return weather
+
+
+def get_weather(location, weather_params, weather_variables):
+    """
+    get Open Meteo forecast for specified weather variables
+
+    Parameters
+    ----------
+    location: dict
+        latitude: float
+        longitude: float
+        timezone: string
+    Returns
+    -------
+    response_data
     """
     
     #TODO Add check for parameters
     latitude = location["latitude"]
     longitude = location["longitude"]
     timezone = location["tz"]
+    
+    start_date = weather_params["start_date"]
+    end_date = weather_params["end_date"]
+    forecast_reso = weather_params["forecast_reso"]
+    
+    historical = False
+    if not start_date and not end_date:
+        historical = True
     
     #%%
     # Setup the Open-Meteo API client with cache and retry on error
@@ -146,50 +171,37 @@ def get_pv_weather(location):
     
     # Make sure all required weather variables are listed here
     # The order of variables in hourly or daily is important to assign them correctly below
+    # default behaviour is seven day forecast
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
     	"latitude": latitude,
     	"longitude": longitude,
-    	"hourly": ["temperature_2m", "wind_speed_10m", "surface_pressure", "diffuse_radiation", "direct_normal_irradiance", "shortwave_radiation"],
+    	forecast_reso: weather_variables,
     	"timezone": timezone,
         "wind_speed_unit": "ms",
     }
+    
+    if "past_days" in weather_params:
+        params["past_days"] = weather_params["past_days"]
+    
+    if "forecast_days" in weather_params:
+        params["forecast_days"] = weather_params["forecast_days"]
+    
+    if historical:
+        url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+        params["start_date"] = start_date
+        params["end_date"] = end_date
+    
+    
     responses = openmeteo.weather_api(url, params=params)
     
     # Process first location. Add a for-loop for multiple locations or weather models
     response = responses[0]
-    # print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    # print(f"Elevation: {response.Elevation()} m asl")
-    # print(f"Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
-    # print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
-    
-    # Process hourly data. The order of variables needs to be the same as requested.
-    hourly = response.Hourly()
-    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(1).ValuesAsNumpy()
-    hourly_surface_pressure = hourly.Variables(2).ValuesAsNumpy()
-    hourly_diffuse_radiation = hourly.Variables(3).ValuesAsNumpy()
-    hourly_direct_normal_irradiance = hourly.Variables(4).ValuesAsNumpy()
-    hourly_shortwave_radiation = hourly.Variables(5).ValuesAsNumpy()
-    
-    hourly_data = {"date": pd.date_range(
-    	start = pd.to_datetime(hourly.Time(), unit = "s", utc = True),
-    	end =  pd.to_datetime(hourly.TimeEnd(), unit = "s", utc = True),
-    	freq = pd.Timedelta(seconds = hourly.Interval()),
-    	inclusive = "left"
-    )}
-    
-    hourly_data["temp_air"] = hourly_temperature_2m
-    hourly_data["wind_speed"] = hourly_wind_speed_10m
-    hourly_data["surface_pressure"] = hourly_surface_pressure*100 #from hPa to Pa
-    hourly_data["dhi"] = hourly_diffuse_radiation
-    hourly_data["dni"] = hourly_direct_normal_irradiance
-    hourly_data["ghi"] = hourly_shortwave_radiation
-    
-    hourly_data = pd.DataFrame(data = hourly_data)
-    # print("\nHourly data\n", hourly_data)
-    
-    #%% 
-    weather = hourly_data.set_index("date")
 
-    return weather
+    # Process hourly data. The order of variables needs to be the same as requested.
+    if forecast_reso == "hourly":
+        response_data = response.Hourly()
+    elif forecast_reso == "minutely_15":
+        response_data = response.Minutely15()
+    
+    return response_data

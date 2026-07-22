@@ -4,10 +4,10 @@ Input paths to config json, and consumption data
 """
 
 from matplotlib import pyplot as plt
-from combined_power_module import renewable_powers
+from power_module import renewable_powers
 import json
 
-def main(configuration_files, consumption=None):
+def main(configuration_files_paths, consumption=None):
     """
     Simulate or compare different renewable configurations with each other
     Compute auto-consumption of power if consumption data is provided
@@ -21,37 +21,40 @@ def main(configuration_files, consumption=None):
 
     """
     
-    #parse configurations
-    #define parse function
-    #define configuration example json, make it easy to understand
+    # parse configurations
+    # define parse function
+    # define configuration example json, make it easy to understand
     configs = []
-    for configfile in configuration_files:
+    for configfile in configuration_files_paths:
         configuration = parse_configfile(configfile)
         configs.append(configuration)
     
-    #call power compute module
+    # call power compute module
     powers = []
     for cfg in configs:
-        powers.append(renewable_powers(cfg)) #each element is a list of modules with their calculated power
-    #plot and compare each power forecast
-        
-    for power_mod in powers[0]["pv_modules"]:
-        power = power_mod.get_power()
-        power.plot()
-        plt.xlabel("Date")
-        plt.ylabel('Hourly PV power output (W)')
-        plt.show()
+        powers.append(renewable_powers(cfg)) # each element is a list of modules with their calculated power
     
     # compute auto-consumption
-    # might need to modify both datasets to fit them
+    # need to pre-process datasets
     
-    #compare configurations and compare auto-consumptions
-    #give terminal line info: how many percents difference there are, etc
-    
+    # compare configurations and compare auto-consumptions
+    # give terminal line info: how many percents difference there are, etc
+
+    # plots
+    for config_power in powers:
+        for config_modules in config_power.values():
+            power = config_modules[0].get_power()
+            for power_mod in config_modules[1:]:
+                power += power_mod.get_power()
+            power.plot()
+            plt.xlabel("Date")
+            plt.ylabel('Hourly PV power output (W)')
+            plt.show()
+
 
 def parse_configfile(configfile):
     with open(configfile, "r") as cfg:
         config = json.load(cfg)
     return config
 
-main(["sample.json"])
+main(["pv.json", "wind.json"])
