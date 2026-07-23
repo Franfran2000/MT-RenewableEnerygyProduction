@@ -11,33 +11,33 @@ Created on Sun Jul 12 11:02:54 2026
 
 # modules = ["Panasonic_VBHN235SA06B__2013_", 'Trina_TSM_240PA05__2013_', "Canadian_Solar_CS5P_220M___2009_"]
 
-import pvlib.pvsystem as psys
-import pandas as pd
-inverter_data = psys.retrieve_sam("CECInverter")
+# import pvlib.pvsystem as psys
+# import pandas as pd
+# inverter_data = psys.retrieve_sam("CECInverter")
 
-with pd.option_context('display.max_rows', None,
-                       'display.max_columns', None,
-                       'display.precision', 3,
-                       ):
-    inverters = inverter_data.transpose()
-    inverters.sort_values(["Paco"], inplace=True, ascending=False)
+# with pd.option_context('display.max_rows', None,
+#                        'display.max_columns', None,
+#                        'display.precision', 3,
+#                        ):
+#     inverters = inverter_data.transpose()
+#     inverters.sort_values(["Paco"], inplace=True, ascending=False)
     
-    print(inverters.loc[(inverters['Pdco'] >= 240000) & (inverters['Pdco'] <= 260000)][["Paco", "Pdco", "Vdco"]])
+#     # print(inverters.loc[(inverters['Pdco'] >= 240000) & (inverters['Pdco'] <= 260000)][["Paco", "Pdco", "Vdco"]])
 
     
-sandia_modules = psys.retrieve_sam('SandiaMod')
-with pd.option_context('display.max_rows', None,
-                       'display.max_columns', None,
-                       'display.precision', 3,
-                       ):
-    # print(sandia_modules.head(10)["Aleo_S16_170__2007__E__"])
+# sandia_modules = psys.retrieve_sam('SandiaMod')
+# with pd.option_context('display.max_rows', None,
+#                        'display.max_columns', None,
+#                        'display.precision', 3,
+#                        ):
+#     # print(sandia_modules.head(10)["Aleo_S16_170__2007__E__"])
     
-    panels = sandia_modules.transpose()
-    panels["Power"] = panels["Impo"]*panels["Vmpo"]
-    panels.sort_values(["Power"], ascending=False, inplace=True)    
-    # print(panels[["Area", "Power", "Vmpo"]])
+#     panels = sandia_modules.transpose()
+#     panels["Power"] = panels["Impo"]*panels["Vmpo"]
+#     panels.sort_values(["Power"], ascending=False, inplace=True)    
+#     print(panels[["Area", "Power", "Vmpo"]])
     
-    # print(panels["Vintage"])
+#    # print(panels["Vintage"])
     
     
 # import pandas as pd
@@ -66,5 +66,5 @@ with pd.option_context('display.max_rows', None,
 # dic = {forecast_reso1: forecast_reso2}
 # print(dic)
 
-
-
+import pvlib
+print(pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS["sapm"])

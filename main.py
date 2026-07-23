@@ -55,6 +55,7 @@ def main(configuration_files_paths, consumption=None):
             
             energy = power.sum()*0.25 #for 15minutely
             print(energy/1000, "kWh")
+            print(energy/(24*365.25), "kW on average")
             
             
 def parse_configfile(configfile):

@@ -148,7 +148,7 @@ class PVModule(RenewModule):
                 arrays.append(array)
     
             pvsystem = PVSystem(arrays=arrays, inverter_parameters=inverter)
-            mc = ModelChain(pvsystem, self.location)
+            mc = ModelChain(pvsystem, self.location, losses_model="pvwatts")
             
             self.installations_mc.append(mc)
         
