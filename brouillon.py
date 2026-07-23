@@ -19,18 +19,27 @@ with pd.option_context('display.max_rows', None,
                        'display.max_columns', None,
                        'display.precision', 3,
                        ):
-    print(inverter_data.head(100))   
-    print(inverter_data["iPower__SHO_5_2__240V_"])
+    inverters = inverter_data.transpose()
+    inverters.sort_values(["Paco"], inplace=True, ascending=False)
+    
+    print(inverters.loc[(inverters['Pdco'] >= 240000) & (inverters['Pdco'] <= 260000)][["Paco", "Pdco", "Vdco"]])
 
-# sandia_modules = psys.retrieve_sam('SandiaMod')
-# with pd.option_context('display.max_rows', None,
-#                        'display.max_columns', None,
-#                        'display.precision', 3,
-#                        ):
-#     print(sandia_modules.head(10))
-
-# print(sandia_modules["Canadian_Solar_CS5P_220M___2009_"])
-
+    
+sandia_modules = psys.retrieve_sam('SandiaMod')
+with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       'display.precision', 3,
+                       ):
+    # print(sandia_modules.head(10)["Aleo_S16_170__2007__E__"])
+    
+    panels = sandia_modules.transpose()
+    panels["Power"] = panels["Impo"]*panels["Vmpo"]
+    panels.sort_values(["Power"], ascending=False, inplace=True)    
+    # print(panels[["Area", "Power", "Vmpo"]])
+    
+    # print(panels["Vintage"])
+    
+    
 # import pandas as pd
 
 # # Create sample Series

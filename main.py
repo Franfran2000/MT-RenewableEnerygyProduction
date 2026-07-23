@@ -52,11 +52,12 @@ def main(configuration_files_paths, consumption=None):
             plt.xlabel("Date")
             plt.ylabel(f"{config_type} power output (W)")
             plt.show()
-
-
+            
+            energy = power.sum()*0.25 #for 15minutely
+            print(energy/1000, "kWh")
+            
+            
 def parse_configfile(configfile):
     with open(configfile, "r") as cfg:
         config = json.load(cfg)
     return config
-
-main(["pv.json", "wind.json"])
