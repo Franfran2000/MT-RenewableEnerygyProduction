@@ -1,15 +1,19 @@
 """
 Green_bizz comparing file
 """
-
+import glob
 import pandas as pd
 from main import main
 
+folder = glob.glob("./GreenBizz_Sibelga/*.csv")
 
-folder = "./GreenBizz_Sibelga"
-path = "GB_Sibelga_2022_01.csv"
+dataframes = []
 
-dataframe = pd.read_csv(folder+"/"+ path)
+for file_path in folder:    
+    monthly_data = pd.read_csv(file_path)
+    dataframes.append(monthly_data)
+#%%   
+dataframe = pd.concat(dataframes, verify_integrity=True, ignore_index=True)
 
 dataframe["date"] = pd.DatetimeIndex(dataframe["Unnamed: 0"])
 
@@ -18,8 +22,9 @@ dataframe.set_index("date", inplace=True)
 
 from matplotlib import pyplot as plt
 
-power = dataframe["Greenbizz injection"]
-power.plot()
+power_injected = dataframe["Greenbizz injection"]*1000
+power_injected.plot()
+plt.title("Graph of daily Greenbizz power injection")
 plt.xlabel("Date")
 plt.ylabel("Power injection (W)")
 plt.show()
@@ -57,7 +62,7 @@ systems = [{
     "arrays": arrays
     }]
 
-# Assumed 10 tall building for altitude
+# Assumed 10m tall building for altitude
 location = {
     "latitude": 50.8709166667,
     "longitude": 4.3503055556,
@@ -77,8 +82,8 @@ configs = [{
     }]
 
 weather = {
-    "start_date": "2023-01-01",
-    "end_date": "2023-12-31",
+    "start_date": "2021-06-01",
+    "end_date": "2022-09-30",
     "forecast_reso": "minutely_15"
     }
 
@@ -92,5 +97,9 @@ import json
 json_pv = json.dumps(configs_pv, indent=4)
 with open("greenbizz.json", "w") as f:
     f.write(json_pv)
-    
-main(["greenbizz.json"], consumption=power)
+
+consumption_data = dataframe.drop(columns="Greenbizz injection")
+
+consumption_data = consumption_data*1000
+
+main(["greenbizz.json"], consumption=consumption_data)
