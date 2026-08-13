@@ -30,7 +30,7 @@ def get_wind_weather(location, weather_params):
     """
    
     wind_weather_variables = ["wind_speed_80m", "wind_speed_10m", "wind_speed_120m", "temperature_80m", "temperature_120m", "temperature_2m", "wind_speed_180m", "temperature_180m", "surface_pressure"]
-    response_data = get_weather(location, weather_params, wind_weather_variables)
+    response_data, timezone_param = get_weather(location, weather_params, wind_weather_variables)
     
     abs_zero = 273.15 # Offset between degrees Celsius and Kelvin 
     data_wind_speed_80m = response_data.Variables(0).ValuesAsNumpy()
@@ -48,7 +48,7 @@ def get_wind_weather(location, weather_params):
 		end =  pd.to_datetime(response_data.TimeEnd(), unit = "s", utc = True),
 		freq = pd.Timedelta(seconds = response_data.Interval()),
 		inclusive = "left"
-	)
+	).tz_convert(timezone_param)
     response_dict = { 
         "wind_speed": {}, 
         "temperature": {}, 
@@ -106,7 +106,7 @@ def get_pv_weather(location, weather_params):
     
     
     solar_weather_variables = ["temperature_2m", "wind_speed_10m", "diffuse_radiation", "direct_normal_irradiance", "shortwave_radiation"]
-    response_data = get_weather(location, weather_params, solar_weather_variables)
+    response_data, timezone_param = get_weather(location, weather_params, solar_weather_variables)
     
     response_data_temperature_2m = response_data.Variables(0).ValuesAsNumpy()
     response_data_wind_speed_10m = response_data.Variables(1).ValuesAsNumpy()
@@ -119,7 +119,8 @@ def get_pv_weather(location, weather_params):
     	end =  pd.to_datetime(response_data.TimeEnd(), unit = "s", utc = True),
     	freq = pd.Timedelta(seconds = response_data.Interval()),
     	inclusive = "left"
-    )}
+        ).tz_convert(timezone_param)
+    }
     
     response_dict["temp_air"] = response_data_temperature_2m
     response_dict["wind_speed"] = response_data_wind_speed_10m
@@ -148,6 +149,7 @@ def get_weather(location, weather_params, weather_variables):
     Returns
     -------
     response_data
+    timezone_param
     """
     
     #TODO Add check for parameters
@@ -203,4 +205,4 @@ def get_weather(location, weather_params, weather_variables):
     elif forecast_reso == "minutely_15":
         response_data = response.Minutely15()
     
-    return response_data
+    return response_data, response.Timezone().decode()
