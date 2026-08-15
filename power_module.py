@@ -2,10 +2,6 @@
 Total Renewable Energy Production
 """
 
-import matplotlib.pyplot as plt
-import pandas as pd
-# import numpy as np
-
 import weather as wt
 from pv_module import PVModule
 from wind_module import WindModule

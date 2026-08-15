@@ -13,21 +13,37 @@ for file_path in folder:
     monthly_data = pd.read_csv(file_path)
     dataframes.append(monthly_data)
 #%%   
-dataframe = pd.concat(dataframes, verify_integrity=True, ignore_index=True)
+##### Create global dataframe with all datapoints, set datetime as index
+df = pd.concat(dataframes, verify_integrity=True, ignore_index=True)
+df["date"] = pd.DatetimeIndex(df["Unnamed: 0"])
+df.drop(columns="Unnamed: 0", inplace=True)
+df.set_index("date", inplace=True)
 
-dataframe["date"] = pd.DatetimeIndex(dataframe["Unnamed: 0"])
+# Data is in the form of 15 minute intervals of energy produced and consumed [kWh]
+# The amount of power needed to produce this amount of energy in 15min equals:
+# Power = 1000*Energy/Time, energy in [kWh], Time in 0.25[h]  
+# Power [W] = 1000*energy/0.25
 
-dataframe.drop(columns="Unnamed: 0", inplace=True)
-dataframe.set_index("date", inplace=True)
+df = df*1000*4
+
+######## TIMELINE CHOOSING
+start_date = "2021-10-01"
+end_date = "2022-09-30"
+
+df = df.loc[(df.index >= start_date) & (df.index <= end_date + " 23:45:00")]
+
+print(df)
 
 from matplotlib import pyplot as plt
 
-power_injected = dataframe["Greenbizz injection"]*1000
+power_injected = df["Greenbizz injection"]
 power_injected.plot()
-plt.title("Graph of daily Greenbizz power injection")
+plt.title("Daily Greenbizz power injection")
 plt.xlabel("Date")
 plt.ylabel("Power injection (W)")
 plt.show()
+
+print("Greenbizz total energy injected", power_injected.sum()*0.25/1000, "kWh")
 
 # Modélisation
 # From data, needs to handle 240kWp of DC input power
@@ -82,8 +98,8 @@ configs = [{
     }]
 
 weather = {
-    "start_date": "2021-06-01",
-    "end_date": "2022-09-30",
+    "start_date": start_date,
+    "end_date": end_date,
     "forecast_reso": "minutely_15"
     }
 
@@ -98,8 +114,8 @@ json_pv = json.dumps(configs_pv, indent=4)
 with open("greenbizz.json", "w") as f:
     f.write(json_pv)
 
-consumption_data = dataframe.drop(columns="Greenbizz injection")
+consumption_data = df.drop(columns="Greenbizz injection")
 
-consumption_data = consumption_data*1000
+consumption_data = consumption_data
 
-main(["greenbizz.json"], consumption=consumption_data)
+results = main(["greenbizz.json"], consumption=consumption_data)

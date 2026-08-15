@@ -41,6 +41,23 @@ def main(configuration_files_paths, consumption=None):
     for cfg in configs:
         powers.append(renewable_powers(cfg)) # each element is a list of modules with their calculated power
     
+    # plots
+    for config_power in powers:
+        for config_type, config_modules in config_power.items():
+            power = config_modules[0].get_power()
+            for power_module in config_modules[1:]:
+                power += power_module.get_power()
+            
+            config_type = config_type[:-len("_modules")]
+            power.plot()
+            plt.title(f"Daily {config_type} power output")
+            plt.xlabel("Date")
+            plt.ylabel(f"{config_type} power output (W)")
+            plt.show()
+            
+            energy = power.sum()*0.25/1000 # [kWh] 15 minute interval, not whole hour
+            print("Simulated total energy output", energy, "kWh")
+    
     # compare configurations to the others
     comparisons = compare_configs(powers)
     
@@ -65,27 +82,17 @@ def parse_configfile(configfile):
     return config
 
 def calculate_self_consumption(powers, consumption):
-        # plots
         for config_power in powers:
             for config_type, config_modules in config_power.items():
                 power = config_modules[0].get_power()
                 for power_module in config_modules[1:]:
                     power += power_module.get_power()
-                
-                config_type = config_type[:-len("_modules")]
-                power.plot()
-                plt.title(f"Graph of daily {config_type} power output")
-                plt.xlabel("Date")
-                plt.ylabel(f"{config_type} power output (W)")
-                plt.show()
-                
-                energy = power.sum()*0.25 #for 15minutely
-                print(energy/1000, "kWh")
-        
+    
         consumption = consumption.sum(axis=1) # here we lose who consumed what #TODO would be good to remember who consumes or not to give better recommendations
-        consumption.index = power.index # patchwork because consumption data does not have Daylight Savings time changes, resulting in misaligned data
+        consumption.index = power.index # patchwork because consumption data does not have Daylight Savings time changes, resulting in misaligned indices while keeping the same amount of total data points
+                                        # October has a longer day and March has a shorter day that cancels out
         consumption.plot()
-        plt.title("Graph of daily power usage")
+        plt.title("Daily power usage")
         plt.xlabel("Date")
         plt.ylabel("Total power consumption (W)")
         plt.show()
@@ -98,9 +105,21 @@ def calculate_self_consumption(powers, consumption):
         self_cons[self_cons < 0] = 0
         
         self_cons.plot()
-        plt.title("Graph of daily self consumption")
+        plt.title("Daily self consumption")
         plt.xlabel("Date")
         plt.ylabel("Self consumption (W)")
         plt.show()
         
+        injection = power - self_cons
+        
+        injection.plot()
+        plt.title("Daily injection")
+        plt.xlabel("Date")
+        plt.ylabel("Daily injection (W)")
+        plt.show()
+        
+        print("total actual consumed energy", consumption.sum()*0.25/1000, "kWh")
+        print("Total self-consumption", self_cons.sum()*0.25/1000, "kWh")
+        print("Total injection", injection.sum()*0.25/1000, "kWh")
+
         return self_cons
