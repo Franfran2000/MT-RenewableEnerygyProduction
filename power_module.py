@@ -37,7 +37,7 @@ def renewable_powers(configs):
             pv_installations = cfg["installations"]
             for pv_install in pv_installations:
                 pv_location = pv_install["location"]
-                pv_weather = wt.get_pv_weather(pv_location, weather_params) # TODO make weather forecast timeline a parameter
+                pv_weather = wt.get_pv_weather(pv_location, weather_params)
                 
                 # one module per location, multiple systems (each linked to one inverter) per module
                 pv_systems = pv_install["systems"]
@@ -45,7 +45,7 @@ def renewable_powers(configs):
                 pv.read_params(pv_systems)
                 pv.calculate_power(pv_weather)
             
-                pv_modules.append(pv) # append PVModule object directly #TODO correct arborescence ?
+                pv_modules.append(pv) # append PVModule object directly
                 
         elif cfg_type == "wind": 
             # one call per location

@@ -29,8 +29,6 @@ def main(configuration_files_paths, consumption=None):
     """
     
     # parse configurations
-    # define parse function
-    # define configuration example json, make it easy to understand
     configs = []
     for configfile in configuration_files_paths:
         configuration = parse_configfile(configfile)

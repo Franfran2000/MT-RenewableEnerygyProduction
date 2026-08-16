@@ -9,7 +9,7 @@ class RenewModule():
 
     def read_params(self, *args, **kwargs):
         """
-        Read the parameters describing the renewable infrastructure
+        Read the parameters describing the renewable installation
         """
         pass
 

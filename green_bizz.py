@@ -7,7 +7,7 @@ from IPython.display import display
 from main import main
 
 ## Error measurement
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error, mean_absolute_percentage_error
 import numpy as np
 
 folder = glob.glob("./GreenBizz_Sibelga/*.csv")
@@ -36,40 +36,29 @@ df.fillna(0, inplace=True) # 31st July 2022 has no datapoints at all, set to 0
 # Power [W] = 1000*energy/0.25
 
 w_to_kwh = 0.25/1000 # 1000W = kW, 15 minute intervals -> energy production of 1kW for 15min = 1kW*h/4
-df = df/w_to_kwh
+df = df/w_to_kwh 
 
 ######## TIMELINE CHOOSING
 start_date = "2021-10-01"
 end_date = "2022-09-30"
 
-df = df.loc[(df.index >= start_date) & (df.index <= end_date + " 23:45:00")]
+# start_date = "2021-10-10"
+# end_date = "2021-10-18"
 
-nan_df = df.isnull().values
-nan_indices = []
-for i in range(len(nan_df)):
-    if nan_df[i].any():
-        nan_indices.append(i)
-pd.set_option('display.max_columns', None)
-display(df.iloc[nan_indices])
+df = df.loc[(df.index >= start_date) & (df.index <= end_date + " 23:45:00")]
 
 from matplotlib import pyplot as plt
 
 power_injected = df["Greenbizz injection"]
-(power_injected/1000).plot()
-plt.title("Daily Greenbizz power injection")
+(power_injected*w_to_kwh).plot()
 plt.xlabel("Date")
-plt.ylabel("Power injection (kW)")
+plt.ylabel("Energy injection (kWh)")
+plt.title("Greenbizz power injection")
+
+plt.savefig("GreenbizzInjectedEnergy.pdf", format="pdf", bbox_inches='tight')
 plt.show()
 
-print("Greenbizz total energy injected", power_injected.sum()*w_to_kwh, "kWh")
-
-nan_list = power_injected.isnull().values
-nan_indices = []
-for i in range(len(nan_list)):
-    if nan_list[i]:
-        nan_indices.append(i)
-
-print(nan_indices)
+# print("Greenbizz total energy injected", power_injected.sum()*w_to_kwh, "kWh")
 
 # Modeling
 # From data, needs to handle 240kWp of DC input power
@@ -155,7 +144,7 @@ for config_power in powers:
         
         config_type = config_type[:-len("_modules")]
         (power/1000).plot()
-        plt.title(f"Daily simulated {config_type} power output")
+        plt.title(f"Simulated {config_type} power output")
         plt.xlabel("Date")
         plt.ylabel(f"Power (kW)")
         plt.show()
@@ -165,33 +154,46 @@ for config_power in powers:
         
 total_cons = consumption_data.sum(axis=1)
 (total_cons/1000).plot() # kW instead of W
-plt.title("Daily power consumption")
+plt.title("Measured power consumption")
 plt.xlabel("Date")
 plt.ylabel("Power consumption (kW)")
 plt.show()
 
 (self_cons/1000).plot()
-plt.title("Daily self consumption")
+plt.title("Simulated self consumption")
 plt.xlabel("Date")
 plt.ylabel("Self consumption (kW)")
 plt.show()
 
 injection = power - self_cons
 
-(injection/1000).plot()
-plt.title("Daily simulated injection")
+# data corrections
+injection.loc[(injection.index >= "2022-07-31 00:00:00+02:00") & (injection.index <= "2022-07-31 23:45:00+02:00")] = 0 # missing 31 July 2022
+injection.loc[(injection.index >= "2021-10-13 00:00:00+02:00") & (injection.index < "2021-10-18 00:00:00+02:00")] = 0 # missing data from 13/10/2021 till 18/10/2021
+
+
+(power_injected/1000).plot(label="Greenbizz injection")
+(injection/1000).plot(label="Simulated injection")
+plt.title("Power injection comparison")
 plt.xlabel("Date")
-plt.ylabel("Simulated injection (kW)")
+plt.ylabel("Power (kW)")
+plt.legend()
+
+plt.savefig("InjectedPowerComparison.pdf", format="pdf", bbox_inches="tight")
 plt.show()
 
 print("total actual consumed energy", total_cons.sum()*w_to_kwh, "kWh")
 print("Total self-consumption energy", self_cons.sum()*w_to_kwh, "kWh")
 print("Total injection energy", injection.sum()*w_to_kwh, "kWh")
 
-print(injection.isnull().values.any())
-
-injection_rmse = np.sqrt(mean_squared_error(power_injected/1000, injection/1000))
+injection_rmse = root_mean_squared_error(power_injected/1000, injection/1000)
 injection_mae = mean_absolute_error(power_injected/1000, injection/1000)
+
+threshold = 100 # W, used to filter out low values that explode the division for MAPE
+power_injected.index = injection.index
+mask = power_injected.abs() > threshold
+injection_mape = mean_absolute_percentage_error(power_injected[mask], injection[mask])
 
 print(f"RMSE: {injection_rmse:.2f} kW")
 print(f"MAE:  {injection_mae:.2f} kW")
+print(f"MAPE: {injection_mape:.2f} %")

@@ -8,7 +8,6 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
-#TODO add number of days and time resolution as params
 def get_wind_weather(location, weather_params):
     """
     get Open Meteo forecast for wind module, by default it is set to Louvain-la-Neuve in Belgium
@@ -104,7 +103,6 @@ def get_pv_weather(location, weather_params):
             shortwave solar radiation GHI: {W/m^2}
     """
     
-    
     solar_weather_variables = ["temperature_2m", "wind_speed_10m", "diffuse_radiation", "direct_normal_irradiance", "shortwave_radiation"]
     response_data, timezone_param = get_weather(location, weather_params, solar_weather_variables)
     
@@ -146,13 +144,23 @@ def get_weather(location, weather_params, weather_variables):
         latitude: float
         longitude: float
         timezone: string
+    weather_params: dict
+        start_date: string
+            YYYY-MM-DD formatted date
+        end_date: string
+            YYYY-MM-DD formatted date
+        forecast_reso: string
+        "hourly" or "minutely_15" forecast resolution
+        past_days: string
+            number of previous days to include in forecast
+        forecast_days: string
+            number of future days to include in forecast
     Returns
     -------
     response_data
     timezone_param
     """
     
-    #TODO Add check for parameters
     latitude = location["latitude"]
     longitude = location["longitude"]
     timezone = location["tz"]

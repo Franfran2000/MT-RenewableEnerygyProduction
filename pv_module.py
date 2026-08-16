@@ -28,8 +28,6 @@ class PVModule(RenewModule):
         
     def read_params(self, systems):
         """
-        #TODO Change description
-        #TODO separate into multiple subfunctions
         Reads the input defining a PV system of arrays of pv modules connected to a single inverter
         The description of these variables is taken from the pvlib documentation
 
