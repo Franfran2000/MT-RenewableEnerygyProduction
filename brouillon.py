@@ -39,7 +39,6 @@ Created on Sun Jul 12 11:02:54 2026
     
 #    # print(panels["Vintage"])
     
-    
 # import pandas as pd
 
 # # Create sample Series
@@ -66,5 +65,18 @@ Created on Sun Jul 12 11:02:54 2026
 # dic = {forecast_reso1: forecast_reso2}
 # print(dic)
 
-import pvlib
-print(pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS["sapm"])
+# import pvlib
+# print(pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS["sapm"])
+
+import pandas as pd
+df = pd.read_csv("31July2021.csv")
+df.drop(columns=["No Science"], inplace=True)
+
+new_df = pd.read_csv("Old 31Jul2022.csv")
+print(new_df)
+
+df["Unnamed: 0"] = new_df["Unnamed: 0"]
+
+print(df)
+df.to_csv("31July2022.csv", index=False)
+
